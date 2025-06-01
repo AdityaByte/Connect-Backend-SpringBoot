@@ -18,8 +18,8 @@ public class UserRepository {
 
     // Repository method for making db queries and interacting with the database.
 
-    public boolean createUser(User user) {
-        return mongoTemplate.insert(user) != null; // It returns the saved user else it returns null.
+    public Optional<User> createUser(User user) {
+        return Optional.ofNullable(mongoTemplate.insert(user)); // It returns the saved user else it returns null.
     }
 
     public Optional<User> findByEmail(String email) {
