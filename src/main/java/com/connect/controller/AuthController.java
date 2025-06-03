@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.connect.security.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,8 +26,8 @@ import com.connect.pojo.LoginRequest;
 import com.connect.service.UserService;
 import com.connect.utils.JwtUtil;
 
-@RequestMapping("/auth")
 @RestController
+@RequestMapping("/auth")
 public class AuthController {
 
     @Autowired
@@ -77,7 +79,9 @@ public class AuthController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String token = jwtUtil.generateToken(loginRequest.getEmail());
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        String token = jwtUtil.generateToken(customUserDetails.getUsername(), customUserDetails.getEmail());
         Date expiry = jwtUtil.getExpirationDate(token);
 
         Map<String, Object> response = new HashMap<>();
