@@ -24,8 +24,6 @@ public class UserService {
     @Autowired
     private EmailService emailService;
 
-    private String otp;
-
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private static final Map<String, User> userStore = new HashMap<>();
@@ -80,28 +78,13 @@ public class UserService {
         // Else here we need to create the user ok.
 
         User savedUser = userStore.get(email);
-
         savedUser.setPassword(passwordEncoder.encode(savedUser.getPassword()));
 
         Optional<User> createdUser = repository.createUser(savedUser);
-
         userStore.remove(email); // Have to remove it after all.
 
         return createdUser
         .orElseThrow(() -> new UserCreationException("Something went wrong at the server! try again later."));
-    }
-
-    public User checkUser(User user) {
-        Optional<User> fetchedUser = repository.findByEmail(user.getEmail());
-        if (fetchedUser.isEmpty()) {
-            throw new InvalidUserException("User doesn't exits of the email: " + user.getEmail());
-        }
-        // Else the user exists in this case.
-        if (!passwordEncoder.matches(user.getPassword(), fetchedUser.get().getPassword())) {
-            throw new InvalidUserException("Invalid Credentials");
-        }
-
-        return fetchedUser.get();
     }
 
 }

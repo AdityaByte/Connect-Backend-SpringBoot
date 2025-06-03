@@ -1,10 +1,16 @@
 package com.connect.controller;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,7 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.connect.model.OTP;
 import com.connect.model.User;
+import com.connect.pojo.LoginRequest;
 import com.connect.service.UserService;
+import com.connect.utils.JwtUtil;
 
 @RequestMapping("/auth")
 @RestController
@@ -22,6 +30,12 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     // Handler method for handling the signup functionality.
     @PostMapping("/signup")
@@ -38,26 +52,38 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> verifyOTPHandler(@RequestBody OTP otp) {
         userService.createUser(otp.getOtp(), otp.getEmail());
         return ResponseEntity
-            .status(HttpStatus.CREATED)
-            .body(Map.of("response", "User created successfully"));
+                .status(HttpStatus.CREATED)
+                .body(Map.of("response", "User created successfully"));
     }
 
     @GetMapping("/signup/resendOTP")
     public ResponseEntity<Map<String, String>> resendOTPHandler(@RequestParam("email") String email) {
         userService.resendOTP(email);
         return ResponseEntity
-        .status(HttpStatus.CREATED)
-        .body(Map.of("response", "OTP sent successfully"));
+                .status(HttpStatus.CREATED)
+                .body(Map.of("response", "OTP sent successfully"));
     }
 
     // Handler method for handling the login functionality.
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> loginHandler(@RequestBody User user) {
+    public ResponseEntity<?> loginHandler(@RequestBody LoginRequest loginRequest) throws Exception {
+        // Temporary logging statements.
         System.out.println("Request Recieved");
-        System.out.println(user.toString());
-        userService.checkUser(user);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(Map.of("response", "Valid Credentials"));
+        System.out.println(loginRequest.toString());
+
+        // Spring security authentication for checking the authentication.
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String token = jwtUtil.generateToken(loginRequest.getEmail());
+        Date expiry = jwtUtil.getExpirationDate(token);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("expiresAt", expiry);
+
+        return ResponseEntity.ok(response);
     }
 }
