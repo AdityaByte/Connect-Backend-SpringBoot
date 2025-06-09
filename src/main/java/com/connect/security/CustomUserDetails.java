@@ -1,6 +1,7 @@
 package com.connect.security;
 
 import com.connect.model.User;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -8,10 +9,10 @@ import java.util.Collection;
 import java.util.List;
 
 public class CustomUserDetails implements UserDetails {
-    private String username;
-    private String email;
-    private String password;
-    private Collection<? extends GrantedAuthority> authorities;
+    private final String username;
+    private final String email;
+    private final String password;
+    private final Collection<? extends GrantedAuthority> authorities;
 
     public CustomUserDetails(User user) {
         this.username = user.getUsername();

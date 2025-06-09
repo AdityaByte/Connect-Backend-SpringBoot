@@ -2,6 +2,7 @@ package com.connect.exception;
 
 import java.util.Map;
 
+import com.mongodb.MongoTimeoutException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,6 +30,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(Map.of("response", ex.getMessage()));
+    }
+
+    @ExceptionHandler(MongoTimeoutException.class)
+    public ResponseEntity<String> mongodbTimeoutExceptionHandler() {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Something went wrong at the Server! Try again later.");
     }
 
 

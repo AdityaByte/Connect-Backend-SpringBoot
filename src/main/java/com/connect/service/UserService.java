@@ -51,7 +51,7 @@ public class UserService {
                 .format("Hey %s\nYour OTP for signup is %s\nRegards from Connect", user.getUsername(), generatedOTP));
 
         // Here we need to save the user details in the user store.
-        userStore.put(user.getEmail(), user); // Since we have set this userdetails and when the user has completed the
+        userStore.put(user.getEmail(), user); // Since we have set this UserDetails and when the user has completed the
                                              // signup we will free the memory.
     }
 
