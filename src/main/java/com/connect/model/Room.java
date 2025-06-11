@@ -1,6 +1,7 @@
 package com.connect.model;
 
 import com.connect.dto.ChatUserDTO;
+import com.connect.dto.MessageDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -16,6 +18,7 @@ import java.util.List;
 public class Room {
     private String roomId;
     private String roomName;
-    private List<ChatUserDTO> allUsers = new ArrayList<>();
-    private List<ChatUserDTO> activeUsers = new ArrayList<>();
+    private Map<String, ChatUserDTO> allUsers; // The key is the username.
+    private Map<String, ChatUserDTO> activeUsers;
+    private List<MessageDTO> messages;
 }
