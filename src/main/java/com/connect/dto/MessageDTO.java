@@ -8,5 +8,4 @@ import lombok.*;
 public class MessageDTO {
     private String sender;
     private String message;
-    private String roomId;
 }
