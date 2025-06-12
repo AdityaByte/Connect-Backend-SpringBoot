@@ -33,6 +33,6 @@ build/
 .vscode/
 
 # Environment files
-*.properties
+.mvn/
 index.html
 *.yml
