@@ -11,8 +11,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -71,25 +70,47 @@ public class WebSocketController {
 
     // Route for handling the history.
     @MessageMapping("/chat.history")
-    public void handleHistory(@Payload Map<String, String> payload) {
+    public void handleHistory(SimpMessageHeaderAccessor headerAccessor, Principal principal) {
 
-        // Here we have to publish the history to the new users.
-        String requester = payload.get("requester"); // Person who is request for the message | more likely new joined user.
-        String roomId = payload.get("roomID"); // Send the current Active Room Id as a payload.
+        System.out.println("Inside handleHistory...");
+        if (principal != null) {
+            System.out.println("Principal in handleHistory: " + principal.getName());
+        } else {
+            System.out.println("Principal in handleHistory is NULL!"); // This is what you're seeing
+        }
 
+        String roomId = headerAccessor.getFirstNativeHeader("roomId");
 
-        System.out.printf("Requesting user for history: %s and roomId: %s\n", requester, roomId );
+        if (roomId == null  || roomId.isEmpty()) {
+            System.out.println("Room id is null");
+            return;
+        }
 
-        List<MessageDTO> history = roomService.getMessages(roomId);
+        System.out.println("room id is: " + roomId);
 
-        if (history == null) {
+        Room room = roomService.getRoom(roomId);
+
+        if (room == null) {
+            System.out.println("No room exists");
+            return;
+        }
+
+        List<MessageDTO> history = room.getMessages();
+
+        if (history.isEmpty()) {
             System.out.println("No message found..");
             return;
         }
 
         System.out.println(history.toString());
 
-        messagingTemplate.convertAndSend("/user/" + requester + "/queue/" + roomId, history);
+        String username = principal.getName();
+
+        System.out.println("extracted username in the handlehistory is " + username);
+
+////        messagingTemplate.convertAndSendToUser(username, "/queue/history", history);
+//        messagingTemplate.convertAndSendToUser(username,"/queue/history", history);
+        messagingTemplate.convertAndSend("/topic/history/" + roomId, history);
     }
 
 }
