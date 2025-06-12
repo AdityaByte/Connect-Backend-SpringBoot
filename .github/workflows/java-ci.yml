@@ -8,7 +8,27 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      MONGO_DB_HOST: localhost
+      MONGO_DB_PORT: 27017
+      DB_NAME: ${{ secrets.DB_NAME }}
+      MAIL_USERNAME: ${{ secrets.USERNAME }}
+      MAIL_PASSWORD: ${{ secrets.PASSWORD }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      
 
     steps:
       - name: Checkout Repository
