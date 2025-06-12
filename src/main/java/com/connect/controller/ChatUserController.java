@@ -2,8 +2,8 @@ package com.connect.controller;
 
 import com.connect.dto.ChatUserDTO;
 import com.connect.dto.MessageDTO;
-import com.connect.model.Room;
-import com.connect.service.RoomService;
+import com.connect.service.ChatUserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -11,106 +11,61 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.Principal;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+// ChatUserController
+// Controller for handling the websocket routes
+// Handles greeting request, joining request, History request.
+
 @RestController
-public class WebSocketController {
-    // The client make the websocket connection sends the token to the server before the request we need
-    // to validate it with the help of the interceptors ok.
-    // ok just testing out the things here we have a handler just a handler which recieves the message
-    // about the client username and email ok.
-    // and we opens up a websocket connection with him.
+@Slf4j
+public class ChatUserController {
 
     @Autowired
-    private RoomService roomService;
+    private ChatUserService chatUserService;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
+    // Temporary persistent (in memory) storage for saving the user.
+    // May remove it later just for testing purpose.
     Map<String, ChatUserDTO> userData = new ConcurrentHashMap<>();
 
     @MessageMapping("/greet")
-    public void handleFirstConn(@Payload ChatUserDTO chatUser) {
-        System.out.println(chatUser.toString());
-        userData.put(chatUser.getUsername(), chatUser);
+    public void handleGreeting(@Payload ChatUserDTO chatUser) {
+        log.info("Greeting Request from the user: {}", chatUser.toString());
+        chatUserService.greetingHandler(chatUser);
         messagingTemplate.convertAndSend("/topic/greet", "websocket connection established");
     }
 
     // Route for handling the joining message.
     @MessageMapping("/chat.join")
     public void joinRoom(SimpMessageHeaderAccessor headerAccessor) {
-        String username = headerAccessor.getFirstNativeHeader("username");
+        String user = headerAccessor.getFirstNativeHeader("username");
         String roomID = headerAccessor.getFirstNativeHeader("roomID");
-        System.out.println("Joining request from " + username);
-
-        ChatUserDTO user = userData.get(username);
-        if (user == null) {
-            System.out.println("Invalid user: User not set");
-            return;
-        }
-
-        roomService.addUserToRoom(user, roomID);
-
+        log.info("Joining Request from user: {} and room: {}", user, roomID);
+        chatUserService.joiningRequestHandler(user, roomID);
     }
 
     @MessageMapping("/chat.send")
     public void handleMessage(@Payload MessageDTO message, SimpMessageHeaderAccessor headerAccessor) {
-        // In this controller we have to send the message to the room.
-        String roomId = headerAccessor.getFirstNativeHeader("roomId");
-        System.out.println(roomId);
-        System.out.println(message.toString());
-
-        roomService.addMessage(message, roomId);
-
-        messagingTemplate.convertAndSend("/topic/chat/" + roomId, message);
+        // Fetching the RoomID from the header.
+        String roomID = headerAccessor.getFirstNativeHeader("roomId");
+        log.info("Sending the message to the room: {}", roomID);
+        chatUserService.addMessagetoRoom(message, roomID);
+        messagingTemplate.convertAndSend("/topic/chat/" + roomID, message);
     }
 
     // Route for handling the history.
     @MessageMapping("/chat.history")
-    public void handleHistory(SimpMessageHeaderAccessor headerAccessor, Principal principal) {
-
-        System.out.println("Inside handleHistory...");
-        if (principal != null) {
-            System.out.println("Principal in handleHistory: " + principal.getName());
-        } else {
-            System.out.println("Principal in handleHistory is NULL!"); // This is what you're seeing
+    public void handleHistory(SimpMessageHeaderAccessor headerAccessor) {
+        String roomID = headerAccessor.getFirstNativeHeader("roomId");
+        log.info("Handling the History of chats for the Room: {}", roomID);
+        var messages = chatUserService.chatHistoryHandler(roomID);
+        if (!messages.isEmpty()) {
+            messagingTemplate.convertAndSend("/topic/history/" + roomID, messages);
         }
-
-        String roomId = headerAccessor.getFirstNativeHeader("roomId");
-
-        if (roomId == null  || roomId.isEmpty()) {
-            System.out.println("Room id is null");
-            return;
-        }
-
-        System.out.println("room id is: " + roomId);
-
-        Room room = roomService.getRoom(roomId);
-
-        if (room == null) {
-            System.out.println("No room exists");
-            return;
-        }
-
-        List<MessageDTO> history = room.getMessages();
-
-        if (history.isEmpty()) {
-            System.out.println("No message found..");
-            return;
-        }
-
-        System.out.println(history.toString());
-
-        String username = principal.getName();
-
-        System.out.println("extracted username in the handlehistory is " + username);
-
-////        messagingTemplate.convertAndSendToUser(username, "/queue/history", history);
-//        messagingTemplate.convertAndSendToUser(username,"/queue/history", history);
-        messagingTemplate.convertAndSend("/topic/history/" + roomId, history);
     }
 
 }
