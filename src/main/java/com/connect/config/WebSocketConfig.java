@@ -3,6 +3,7 @@ package com.connect.config;
 import com.connect.service.JwtTokenService;
 import com.connect.security.StompPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -22,6 +23,9 @@ import java.security.Principal;
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    @Value("${frontend.origin}")
+    private String FRONTEND_URL;
+
     @Autowired
     private JwtTokenService service;
 
@@ -36,7 +40,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry
                 .addEndpoint("/ws")
-                .setAllowedOrigins("http://127.0.0.1:5500", "http://localhost:5500", "http://localhost:5173", "http://127.0.0.1:5173")
+                .setAllowedOrigins(FRONTEND_URL)
                 .withSockJS();
     }
 
