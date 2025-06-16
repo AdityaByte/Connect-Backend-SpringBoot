@@ -39,8 +39,7 @@ public class RoomService {
                 admin.setUserRole(List.of(UserRole.ADMIN));
                 Room generalRoom = new Room(
                         ROOM_NAME,
-                        "A public space for all users to chat, ask questions, and share updates.",
-                        admin
+                        "A public space for all users to chat, ask questions, and share updates."
                 );
                 Optional<Room> createdRoom = roomRepository.addRoom(generalRoom);
                 if (createdRoom.isEmpty()) {
