@@ -34,9 +34,6 @@ public class RoomService {
             Optional<Room> room = roomRepository.findRoomByName(ROOM_NAME);
             if (room.isEmpty()) {
                 // Have to create the first room.
-                User admin = new User();
-                admin.setUsername("ADITYA");
-                admin.setUserRole(List.of(UserRole.ADMIN));
                 Room generalRoom = new Room(
                         ROOM_NAME,
                         "A public space for all users to chat, ask questions, and share updates."
