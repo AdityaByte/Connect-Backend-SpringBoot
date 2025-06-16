@@ -32,6 +32,12 @@ public class Room {
     @DBRef
     private List<User> allUsers; // The key is the username.
 
+    public Room(String roomName, String roomDescription) {
+        this.roomName = roomName;
+        this.roomDescription = roomDescription;
+        this.timeStamp = LocalDateTime.now();
+    }
+
     public Room(String roomName, String roomDescription, User admin) {
         this.roomName = roomName;
         this.roomDescription = roomDescription;
