@@ -20,6 +20,8 @@ public class RoomDTO {
         this.roomId = room.getRoomId().toString();
         this.roomName = room.getRoomName();
         this.roomDescription = room.getRoomDescription();
-        this.admin = room.getAdmin().getUsername();
+        if (room.getAdmin() != null) {
+            this.admin = room.getAdmin().getUsername();
+        }
     }
 }
