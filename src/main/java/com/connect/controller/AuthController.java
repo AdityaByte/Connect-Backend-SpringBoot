@@ -1,9 +1,11 @@
 package com.connect.controller;
 
+import java.security.Principal;
 import java.util.Map;
 
 import com.connect.dto.LoginUserDTO;
 import com.connect.dto.OtpDTO;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -60,5 +62,24 @@ public class AuthController {
         log.info("Login Request by {}", loginUser.toString());
         var response = authService.handleLogin(loginUser);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<Map<String, String>> logoutHandler(@RequestParam("username") String username) {
+        if (username.isEmpty()) {
+            log.error("No user found");
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("response", "User not found"));
+        }
+        if (authService.handleLogout(username) == null) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("response", "Something went wrong at the server"));
+        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(Map.of("response", "Logged out successfully"));
+
     }
 }

@@ -1,13 +1,14 @@
 package com.connect.service;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import com.connect.dto.LoginUserDTO;
+import com.connect.enums.UserRole;
+import com.connect.enums.UserStatus;
 import com.connect.security.CustomUserDetails;
 import com.connect.utils.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,6 +29,7 @@ import com.connect.exception.UserCreationException;;
 @Service
 public class AuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     @Autowired
     private UserRepository repository;
 
@@ -100,6 +102,8 @@ public class AuthService {
         // Before saving it in the DB encoding the password with BCrypt encryption.
         savedUser.setPassword(passwordEncoder.encode(savedUser.getPassword()));
 
+        savedUser.setUserRole(List.of(UserRole.USER));
+
         Optional<User> createdUser = repository.createUser(savedUser);
         userStore.remove(email); // Have to remove it after all.
 
@@ -118,13 +122,26 @@ public class AuthService {
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
         String token = jwtUtil.generateToken(customUserDetails.getUsername(), customUserDetails.getEmail());
+        log.info("generated token: " + token);
         Date expiry = jwtUtil.getExpirationDate(token);
+
+        // Changing the status of the User to Active.
+        Optional<User> updatedUser = repository.updateUserStatus(customUserDetails.getUsername(), UserStatus.ACTIVE);
+        if (updatedUser.isEmpty()) {
+            log.error("User is null");
+            return null;
+        }
 
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
         response.put("expiresAt", expiry);
 
         return response;
+    }
+
+    public User handleLogout(String username) {
+        Optional<User> user = repository.updateUserStatus(username, UserStatus.INACTIVE);
+        return user.orElse(null);
     }
 
 }

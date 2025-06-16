@@ -21,5 +21,4 @@ public class JwtTokenService {
             return null;
         }
     }
-
 }
