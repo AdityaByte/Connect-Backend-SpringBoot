@@ -1,20 +1,20 @@
 package com.connect.dto;
 
-import com.connect.enums.UserRole;
 import com.connect.enums.UserStatus;
-import com.connect.model.Room;
+import com.connect.model.User;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatUserDTO {
+public class UserDTO {
+    private String id;
     private String username;
-    private UserRole role;
     private UserStatus status;
-    private boolean isOnline = false;
-    private List<Room> joinedRooms = new ArrayList<>();
+
+    public UserDTO(User user) {
+        this.id = user.getId().toString();
+        this.username = user.getUsername();
+        this.status = user.getStatus();
+    }
 }

@@ -1,60 +1,103 @@
 package com.connect.service;
 
-import com.connect.dto.ChatUserDTO;
 import com.connect.dto.MessageDTO;
+import com.connect.enums.UserRole;
+import com.connect.model.Message;
 import com.connect.model.Room;
-import jakarta.mail.Message;
+import com.connect.model.User;
+import com.connect.repository.RoomRepository;
+import com.connect.repository.UserRepository;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.security.Principal;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 @Service
+@Slf4j
 public class RoomService {
 
-    private final Map<String, Room> rooms = new ConcurrentHashMap<>();
+    @Autowired
+    private UserRepository userRepository;
 
-    public RoomService() {
-        Room room = new Room("general", "General Room", new ConcurrentHashMap<>(), new ConcurrentHashMap<>(), new ArrayList<>());
-        rooms.put(room.getRoomId(), room);
+    @Autowired
+    private RoomRepository roomRepository;
+
+    @PostConstruct
+    public void init() {
+        try {
+            final String ROOM_NAME = "general";
+            Optional<Room> room = roomRepository.findRoomByName(ROOM_NAME);
+            if (room.isEmpty()) {
+                // Have to create the first room.
+                User admin = new User();
+                admin.setUsername("ADITYA");
+                admin.setUserRole(List.of(UserRole.ADMIN));
+                Room generalRoom = new Room(
+                        ROOM_NAME,
+                        "A public space for all users to chat, ask questions, and share updates.",
+                        admin
+                );
+                Optional<Room> createdRoom = roomRepository.addRoom(generalRoom);
+                if (createdRoom.isEmpty()) {
+                    log.error("Failed to create the general room");
+                }
+            }
+        } catch (Exception e) {
+            log.error("Exception during roomService initialization {}", e.getMessage());
+        }
     }
 
-    public Room getRoom(String roomId) {
-        return rooms.get(roomId);
-    }
-
-    public void addUserToRoom(ChatUserDTO user, String roomId) {
-        Room room = getRoom(roomId);
-        if (room == null) {
-            System.out.println("No room exists");
+    public void addUserToRoom(User user, ObjectId roomId) {
+        Optional<Room> room = roomRepository.findRoomByID(roomId);
+        if (room.isEmpty()) {
+            log.error("No room exists failed to add user to the room");
             return;
         }
-        // else we need to put the user to the room.
-        room.getAllUsers().putIfAbsent(user.getUsername(), user);
+
     }
 
-    public void addMessage(MessageDTO messageDTO, String roomId) {
-        Room room = getRoom(roomId);
-        if (room == null) {
-            System.out.println("No room exists");
-            return;
-        }
-        // else we have to put down the message to the room.
-        room.getMessages().add(messageDTO);
-    }
-
-    public List<MessageDTO> getMessages(String roomId) {
-        Room room = getRoom(roomId);
-        if (room == null) {
-            System.out.println("No room exists");
-            return null;
-        }
-        return room.getMessages();
+    public Optional<Message> addMessage(MessageDTO messageDTO, ObjectId roomId) {
+        Message message = new Message(roomId, messageDTO.getSender(), messageDTO.getMessage());
+        return roomRepository.addMessageToRoom(message);
     }
     
-    public boolean isRoomExists(String roomId) {
-        return rooms.containsKey(roomId);
+    public boolean isRoomExists(ObjectId roomId) {
+        return roomRepository.findRoomByID(roomId).isPresent();
+    }
+
+    // Method for adding a new Room
+    public Room addNewRoom(Room room, Principal principal) {
+        String user = principal.getName();
+        if (user.isEmpty()) {
+            log.error("User not found, failed to create the room");
+            return null;
+        }
+        Optional<User> fetchedUser = userRepository.findByUsername(user);
+        if (fetchedUser.isEmpty()) {
+            log.error("No user found in the DB, failed to create new room");
+            return null;
+        }
+        room.setAdmin(fetchedUser.get());
+        Optional<Room> createdRoom = roomRepository.addRoom(room);
+        if (createdRoom.isEmpty()) {
+            log.error("Failed to create the room");
+            return null;
+        }
+
+        return createdRoom.get();
+    }
+
+    public List<Room> getRooms() {
+        Optional<List<Room>> rooms = roomRepository.getRooms();
+        if (rooms.isEmpty() || rooms.get().isEmpty()) {
+            log.info("No rooms found");
+            return null;
+        }
+        return rooms.get();
     }
 }

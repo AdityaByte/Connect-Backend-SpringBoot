@@ -1,7 +1,9 @@
 package com.connect.controller;
 
-import com.connect.dto.ChatUserDTO;
 import com.connect.dto.MessageDTO;
+import com.connect.dto.UserDTO;
+import com.connect.model.Message;
+import com.connect.model.User;
 import com.connect.service.ChatUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +13,9 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 // ChatUserController
 // Controller for handling the websocket routes
@@ -28,24 +31,12 @@ public class ChatUserController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    // Temporary persistent (in memory) storage for saving the user.
-    // May remove it later just for testing purpose.
-    Map<String, ChatUserDTO> userData = new ConcurrentHashMap<>();
-
     @MessageMapping("/greet")
-    public void handleGreeting(@Payload ChatUserDTO chatUser) {
-        log.info("Greeting Request from the user: {}", chatUser.toString());
-        chatUserService.greetingHandler(chatUser);
+    public void handleGreeting(SimpMessageHeaderAccessor headerAccessor) {
+        log.info("Greeting Request from the user");
+        String token = headerAccessor.getFirstNativeHeader("Authorization");
+        chatUserService.greetingHandler(token);
         messagingTemplate.convertAndSend("/topic/greet", "websocket connection established");
-    }
-
-    // Route for handling the joining message.
-    @MessageMapping("/chat.join")
-    public void joinRoom(SimpMessageHeaderAccessor headerAccessor) {
-        String user = headerAccessor.getFirstNativeHeader("username");
-        String roomID = headerAccessor.getFirstNativeHeader("roomID");
-        log.info("Joining Request from user: {} and room: {}", user, roomID);
-        chatUserService.joiningRequestHandler(user, roomID);
     }
 
     @MessageMapping("/chat.send")
@@ -53,19 +44,37 @@ public class ChatUserController {
         // Fetching the RoomID from the header.
         String roomID = headerAccessor.getFirstNativeHeader("roomId");
         log.info("Sending the message to the room: {}", roomID);
-        chatUserService.addMessagetoRoom(message, roomID);
-        messagingTemplate.convertAndSend("/topic/chat/" + roomID, message);
+        Optional<Message> dbMessage = chatUserService.addMessagetoRoom(message, roomID);
+        dbMessage.ifPresent(msg ->
+                messagingTemplate.convertAndSend("/topic/chat/" + roomID, msg));
     }
 
     // Route for handling the history.
     @MessageMapping("/chat.history")
     public void handleHistory(SimpMessageHeaderAccessor headerAccessor) {
-        String roomID = headerAccessor.getFirstNativeHeader("roomId");
-        log.info("Handling the History of chats for the Room: {}", roomID);
-        var messages = chatUserService.chatHistoryHandler(roomID);
-        if (!messages.isEmpty()) {
-            messagingTemplate.convertAndSend("/topic/history/" + roomID, messages);
-        }
+        String roomId = headerAccessor.getFirstNativeHeader("roomId");
+        log.info("Handling the History of chats for the Room: {}", roomId);
+        Optional<List<Message>> messages = chatUserService.chatHistoryHandler(roomId);
+        messages.ifPresent(msgs -> {
+            List<MessageDTO> dtoList = msgs.stream()
+                    .map(MessageDTO::new)
+                    .collect(Collectors.toList());
+
+            messagingTemplate.convertAndSend("/topic/history/"+roomId, dtoList);
+        });
+    }
+
+    @MessageMapping("/users")
+    public void fetchUsers() {
+        Optional<List<User>> users = chatUserService.fetchUser();
+        users.ifPresent(users1 -> {
+            List<UserDTO> modifiedUsers = users1
+                    .stream()
+                    .map(UserDTO::new)
+                    .collect(Collectors.toList());
+            System.out.println("working dude");
+            messagingTemplate.convertAndSend("/topic/users", modifiedUsers);
+        });
     }
 
 }
