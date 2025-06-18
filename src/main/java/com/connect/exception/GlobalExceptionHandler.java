@@ -33,12 +33,18 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MongoTimeoutException.class)
-    public ResponseEntity<String> mongodbTimeoutExceptionHandler() {
+    public ResponseEntity<Map<String, String>> mongodbTimeoutExceptionHandler() {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Something went wrong at the Server! Try again later.");
+                .body(Map.of("response", "Something went wrong at the Server! Try again later."));
     }
 
+    @ExceptionHandler(TimeoutException.class)
+    public ResponseEntity<Map<String, String>> handleTimeoutException(Exception ex) {
+        return ResponseEntity
+                .status(HttpStatus.GATEWAY_TIMEOUT)
+                .body(Map.of("response", ex.getMessage()));
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleOtherExceptions(Exception ex) {

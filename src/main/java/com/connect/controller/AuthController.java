@@ -1,11 +1,9 @@
 package com.connect.controller;
 
-import java.security.Principal;
 import java.util.Map;
 
 import com.connect.dto.LoginUserDTO;
 import com.connect.dto.OtpDTO;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

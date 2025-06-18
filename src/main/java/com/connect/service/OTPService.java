@@ -1,31 +1,41 @@
 package com.connect.service;
 
 import java.security.SecureRandom;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.connect.dto.OtpDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.connect.pojo.OTPDetails;;
-
 @Service
+@Slf4j
 public class OTPService {
 
-    private static final SecureRandom random = new SecureRandom();
-    private static final Map<String, OTPDetails> otpStore = new HashMap<>();
+    @Autowired
+    private RedisService redisService;
 
-    public static String generateOTPForUser(String userEmail) {
+    private static final SecureRandom random = new SecureRandom();
+
+    public String generateOTPForUser(String userEmail) {
         int otp = 1000 + random.nextInt(9000);
-        OTPDetails otpDetails = new OTPDetails(String.valueOf(otp), 120); // Valid for 2 minutes.
-        otpStore.put(userEmail, otpDetails);
-        return otpDetails.getOTP();
+        OtpDTO otpDTO = new OtpDTO();
+        otpDTO.setOtp(String.valueOf(otp));
+        otpDTO.setEmail(userEmail);
+        redisService.cacheOTPWithTTL(otpDTO);
+        return String.valueOf(otp);
     }
 
-    public static boolean verifyOTP(String userEmail, String otp) {
-        OTPDetails otpDetails = otpStore.get(userEmail);
-        if (otpDetails == null || otpDetails.isExpired()) {
-            throw new RuntimeException("OTP is expired");
+    public boolean verifyOTP(String userEmail, String otp) {
+        OtpDTO otpDTO = redisService.getOTP(userEmail);
+        if (otpDTO == null) {
+            log.error("OTP is expired");
+            return false;
+        } else if (otpDTO.getEmail() != null && !otpDTO.getEmail().equals(userEmail)) {
+            log.error("Target Email is different");
+            return false;
+        } else if (otpDTO.getOtp() != null && !otpDTO.getOtp().equals(otp)) {
+            log.error("Invalid OTP");
+            return false;
         }
-        return otpDetails.getOTP().equals(otp);
+        return true;
     }
 }
