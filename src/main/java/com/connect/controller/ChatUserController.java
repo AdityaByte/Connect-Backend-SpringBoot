@@ -72,9 +72,7 @@ public class ChatUserController {
                     .stream()
                     .map(UserDTO::new)
                     .collect(Collectors.toList());
-            System.out.println("working dude");
             messagingTemplate.convertAndSend("/topic/users", modifiedUsers);
         });
     }
-
 }
