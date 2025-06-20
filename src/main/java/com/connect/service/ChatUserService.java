@@ -93,6 +93,7 @@ public class ChatUserService {
     }
 
     public Optional<List<User>> fetchUser() {
+        log.info("Fetching all users from database");
         return userRepository.findAllUser();
     }
 

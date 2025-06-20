@@ -67,13 +67,8 @@ public class RoomService {
     }
 
     // Method for adding a new Room
-    public Room addNewRoom(Room room, Principal principal) {
-        String user = principal.getName();
-        if (user.isEmpty()) {
-            log.error("User not found, failed to create the room");
-            return null;
-        }
-        Optional<User> fetchedUser = userRepository.findByUsername(user);
+    public Room addNewRoom(Room room, String username) {
+        Optional<User> fetchedUser = userRepository.findByUsername(username);
         if (fetchedUser.isEmpty()) {
             log.error("No user found in the DB, failed to create new room");
             return null;
