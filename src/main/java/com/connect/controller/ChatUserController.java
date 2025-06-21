@@ -2,6 +2,7 @@ package com.connect.controller;
 
 import com.connect.dto.MessageDTO;
 import com.connect.dto.UserDTO;
+import com.connect.kafka.KafkaPublisherService;
 import com.connect.model.Message;
 import com.connect.model.User;
 import com.connect.service.ChatUserService;
@@ -44,9 +45,8 @@ public class ChatUserController {
         // Fetching the RoomID from the header.
         String roomID = headerAccessor.getFirstNativeHeader("roomId");
         log.info("Sending the message to the room: {}", roomID);
-        Optional<Message> dbMessage = chatUserService.addMessagetoRoom(message, roomID);
-        dbMessage.ifPresent(msg ->
-                messagingTemplate.convertAndSend("/topic/chat/" + roomID, msg));
+        chatUserService.publishMessageToKafka(message, roomID);
+        messagingTemplate.convertAndSend("/topic/chat/" + roomID, message);
     }
 
     // Route for handling the history.
