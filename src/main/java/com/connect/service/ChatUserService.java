@@ -2,6 +2,7 @@ package com.connect.service;
 
 import com.connect.dto.MessageDTO;
 import com.connect.enums.UserStatus;
+import com.connect.kafka.KafkaPublisherService;
 import com.connect.model.Message;
 import com.connect.model.Room;
 import com.connect.model.User;
@@ -32,6 +33,9 @@ public class ChatUserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private KafkaPublisherService kafkaPublisherService;
 
     private Map<String, User> users = new ConcurrentHashMap<>();
 
@@ -67,6 +71,25 @@ public class ChatUserService {
         }
         // If Room exists and the User is valid we have to update the room data.
         roomService.addUserToRoom(requiredUser,  roomID);
+    }
+
+    public void publishMessageToKafka(MessageDTO messageDTO, String roomId) {
+        if (messageDTO == null) {
+            log.error("Message DTO is null");
+            return;
+        } else if (messageDTO.getMessage().isEmpty() || roomId.isEmpty()) {
+            log.error("Empty Data occurred");
+            return;
+        }
+        ObjectId roomID = new ObjectId(roomId);
+        // We are assuming that the roomID is not null so.
+        Message message = Message.builder()
+                .roomId(roomID)
+                .sender(messageDTO.getSender())
+                .message(messageDTO.getMessage())
+                .build();
+
+        kafkaPublisherService.sendEvent(message);
     }
 
     public Optional<Message> addMessagetoRoom(MessageDTO messageDTO, String roomId) {
