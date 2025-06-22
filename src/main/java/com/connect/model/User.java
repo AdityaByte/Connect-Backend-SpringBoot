@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Getter
@@ -21,7 +22,7 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 @Document(collection = "users")
-public class User {
+public class User implements Serializable {
 
     @Id
     private ObjectId id;

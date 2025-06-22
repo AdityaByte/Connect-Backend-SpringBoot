@@ -4,17 +4,19 @@ import java.util.List;
 import java.util.Optional;
 
 import com.connect.enums.UserStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.stereotype.Component;
 
 import com.connect.model.User;
+import org.springframework.stereotype.Repository;
 
-@Component
+@Repository
+@Slf4j
 public class UserRepository {
 
     @Autowired
@@ -47,6 +49,7 @@ public class UserRepository {
     }
 
     public Optional<List<User>> findAllUser() {
+        log.info("Fetching all users from Database");
         return Optional.of(mongoTemplate.findAll(User.class));
     }
 }

@@ -12,6 +12,7 @@ import com.connect.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -119,6 +120,7 @@ public class ChatUserService {
         return roomRepository.getRoomSpecificMessages(roomId);
     }
 
+    @Cacheable(value = "userCache")
     public Optional<List<User>> fetchUser() {
         log.info("Fetching all users from database");
         return userRepository.findAllUser();
