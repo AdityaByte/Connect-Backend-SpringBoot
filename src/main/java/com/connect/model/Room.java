@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -19,7 +18,7 @@ import java.util.List;
 @Document(collection = "rooms")
 public class Room {
     @Id
-    private ObjectId roomId;
+    private String roomId;
     private String roomName;
     private String roomDescription;
     private LocalDateTime timeStamp;
@@ -32,16 +31,16 @@ public class Room {
     @DBRef
     private List<User> allUsers; // The key is the username.
 
-    public Room(String roomName, String roomDescription) {
+    public Room(String roomName, String roomDescription, LocalDateTime timeStamp) {
         this.roomName = roomName;
         this.roomDescription = roomDescription;
-        this.timeStamp = LocalDateTime.now();
+        this.timeStamp = timeStamp;
     }
 
-    public Room(String roomName, String roomDescription, User admin) {
+    public Room(String roomName, String roomDescription, User admin, LocalDateTime timeStamp) {
         this.roomName = roomName;
         this.roomDescription = roomDescription;
-        this.timeStamp = LocalDateTime.now();
+        this.timeStamp = timeStamp;
         this.admin = admin;
     }
 }

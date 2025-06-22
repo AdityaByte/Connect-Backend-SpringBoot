@@ -30,6 +30,7 @@ jobs:
       REDIS_HOST: ${{ secrets.REDIS_HOST }}
       REDIS_PORT: ${{ secrets.REDIS_PORT }}
       REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+      KAFKA_SERVER: ${{ secrets.KAFKA_SERVER }}
 
     steps:
       - name: Checkout Repository

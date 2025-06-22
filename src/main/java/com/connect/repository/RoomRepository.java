@@ -33,7 +33,7 @@ public class RoomRepository {
         return Optional.of(mongoTemplate.find(query, Room.class));
     }
 
-    public Optional<Room> findRoomByID(ObjectId roomId) {
+    public Optional<Room> findRoomByID(String roomId) {
         Query query = new Query();
         query.addCriteria(Criteria.where("roomId").is(roomId));
         return Optional.ofNullable(mongoTemplate.findOne(query, Room.class));
@@ -49,10 +49,16 @@ public class RoomRepository {
         return Optional.ofNullable(mongoTemplate.insert(message));
     }
 
-    public Optional<List<Message>> getRoomSpecificMessages(ObjectId roomId) {
+    public Optional<List<Message>> addMessages(List<Message> messageList) {
+        return Optional.of((List<Message>) mongoTemplate.insert(messageList, Message.class));
+    }
+
+    public Optional<List<Message>> getRoomSpecificMessages(String roomId) {
         Query query = new Query();
         query.addCriteria(Criteria.where("roomId").is(roomId));
-        return Optional.of(mongoTemplate.find(query, Message.class));
+        List<Message> messageList = mongoTemplate.find(query, Message.class);
+        System.out.println(messageList.size());
+        return Optional.of(messageList);
     }
 
 }

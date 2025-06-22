@@ -1,5 +1,6 @@
 package com.connect.service;
 
+import com.connect.buffer.MessageBuffer;
 import com.connect.dto.MessageDTO;
 import com.connect.enums.UserStatus;
 import com.connect.kafka.KafkaPublisherService;
@@ -37,6 +38,9 @@ public class ChatUserService {
     @Autowired
     private KafkaPublisherService kafkaPublisherService;
 
+    @Autowired
+    private MessageBuffer messageBuffer;
+
     private Map<String, User> users = new ConcurrentHashMap<>();
 
     public void greetingHandler(String token) {
@@ -61,16 +65,14 @@ public class ChatUserService {
             return;
         }
 
-        ObjectId roomID = new ObjectId(roomId);
-
         // Checking the Room exists from the RoomId
-        Optional<Room> requestedRoom = roomRepository.findRoomByID(roomID);
+        Optional<Room> requestedRoom = roomRepository.findRoomByID(roomId);
         if (requestedRoom.isEmpty()) {
             log.error("No room exists");
             return;
         }
         // If Room exists and the User is valid we have to update the room data.
-        roomService.addUserToRoom(requiredUser,  roomID);
+        roomService.addUserToRoom(requiredUser,  roomId);
     }
 
     public void publishMessageToKafka(MessageDTO messageDTO, String roomId) {
@@ -80,30 +82,21 @@ public class ChatUserService {
         } else if (messageDTO.getMessage().isEmpty() || roomId.isEmpty()) {
             log.error("Empty Data occurred");
             return;
+        } else if (!ObjectId.isValid(roomId)) {
+            log.error("Room ID is not valid");
+            return;
         }
-        ObjectId roomID = new ObjectId(roomId);
-        // We are assuming that the roomID is not null so.
+        // Room ID is valid and not null.
         Message message = Message.builder()
-                .roomId(roomID)
+                .roomId(roomId)
                 .sender(messageDTO.getSender())
                 .message(messageDTO.getMessage())
+                .timeStamp(messageDTO.getTimeStamp())
                 .build();
 
+        System.out.println(message.toString());
+
         kafkaPublisherService.sendEvent(message);
-    }
-
-    public Optional<Message> addMessagetoRoom(MessageDTO messageDTO, String roomId) {
-        if (messageDTO == null) {
-            log.error("Message DTO is null");
-            return Optional.empty();
-        } else if (messageDTO.getMessage().isEmpty() || roomId.isEmpty()) {
-            log.error("Empty Data occurred");
-            return Optional.empty();
-        }
-
-        ObjectId roomID = new ObjectId(roomId);
-
-        return roomService.addMessage(messageDTO, roomID);
     }
 
     public Optional<List<Message>> chatHistoryHandler(String roomId) {
@@ -111,8 +104,19 @@ public class ChatUserService {
             log.error("Room ID is null in the chat history handler");
             return Optional.empty();
         }
-        ObjectId roomID = new ObjectId(roomId);
-        return roomRepository.getRoomSpecificMessages(roomID);
+
+        // Here we have to check the roomSpecific message is in the buffer or not.
+        if (messageBuffer.size() != 0) {
+            // Here we need to filter out the room specific messages if present in the buffer.
+            List<Message> messageList = messageBuffer.getMessages().stream()
+                    .filter(message -> message.getRoomId().equals(roomId))
+                    .toList();
+            if (!messageList.isEmpty()) {
+                return Optional.of(messageList);
+            }
+        }
+        // If the buffer is empty we have to fetch the messages from the db.
+        return roomRepository.getRoomSpecificMessages(roomId);
     }
 
     public Optional<List<User>> fetchUser() {

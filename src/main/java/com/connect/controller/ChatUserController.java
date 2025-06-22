@@ -2,7 +2,6 @@ package com.connect.controller;
 
 import com.connect.dto.MessageDTO;
 import com.connect.dto.UserDTO;
-import com.connect.kafka.KafkaPublisherService;
 import com.connect.model.Message;
 import com.connect.model.User;
 import com.connect.service.ChatUserService;
@@ -56,6 +55,7 @@ public class ChatUserController {
         log.info("Handling the History of chats for the Room: {}", roomId);
         Optional<List<Message>> messages = chatUserService.chatHistoryHandler(roomId);
         messages.ifPresent(msgs -> {
+            System.out.println(messages.get().size());
             List<MessageDTO> dtoList = msgs.stream()
                     .map(MessageDTO::new)
                     .collect(Collectors.toList());

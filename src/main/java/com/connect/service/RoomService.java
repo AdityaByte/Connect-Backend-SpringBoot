@@ -1,19 +1,15 @@
 package com.connect.service;
 
-import com.connect.dto.MessageDTO;
-import com.connect.enums.UserRole;
-import com.connect.model.Message;
 import com.connect.model.Room;
 import com.connect.model.User;
 import com.connect.repository.RoomRepository;
 import com.connect.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,7 +32,8 @@ public class RoomService {
                 // Have to create the first room.
                 Room generalRoom = new Room(
                         ROOM_NAME,
-                        "A public space for all users to chat, ask questions, and share updates."
+                        "A public space for all users to chat, ask questions, and share updates.",
+                        LocalDateTime.now()
                 );
                 Optional<Room> createdRoom = roomRepository.addRoom(generalRoom);
                 if (createdRoom.isEmpty()) {
@@ -48,7 +45,7 @@ public class RoomService {
         }
     }
 
-    public void addUserToRoom(User user, ObjectId roomId) {
+    public void addUserToRoom(User user, String roomId) {
         Optional<Room> room = roomRepository.findRoomByID(roomId);
         if (room.isEmpty()) {
             log.error("No room exists failed to add user to the room");
@@ -56,13 +53,8 @@ public class RoomService {
         }
 
     }
-
-    public Optional<Message> addMessage(MessageDTO messageDTO, ObjectId roomId) {
-        Message message = new Message(roomId, messageDTO.getSender(), messageDTO.getMessage());
-        return roomRepository.addMessageToRoom(message);
-    }
     
-    public boolean isRoomExists(ObjectId roomId) {
+    public boolean isRoomExists(String roomId) {
         return roomRepository.findRoomByID(roomId).isPresent();
     }
 

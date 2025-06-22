@@ -18,12 +18,12 @@ public class Message {
     @Id
     private ObjectId id;
 
-    private ObjectId roomId;
+    private String roomId;
     private String sender;
     private String message;
     private LocalDateTime timeStamp;
 
-    public Message(ObjectId roomId, String sender, String message) {
+    public Message(String roomId, String sender, String message) {
         this.roomId = roomId;
         this.sender = sender;
         this.message = message;
