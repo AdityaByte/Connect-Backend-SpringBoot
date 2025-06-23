@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
+
       mongo:
         image: mongo:6.0
         ports:
@@ -20,6 +21,23 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
+      zookeeper:
+        image: wurstmeister/zookeeper
+        ports:
+          - 2181:2181
+
+      kafka:
+        image: wurstmeister/kafka
+        ports:
+          - 9092:9092
+        env:
+          KAFKA_ADVERTISED_HOST_NAME: localhost
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_LISTENERS: PLAINTEXT://:9092
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+        options: >-
+          --health-cmd "echo 'hello'" --health-interval 10s --health-timeout 5s --health-retries 3
 
     env:
       MONGO_URI: ${{ secrets.MONGO_URI }}
