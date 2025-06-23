@@ -20,7 +20,6 @@ public class MessageBuffer {
 
     // I am making it synchronized so that multiple threads cannot access it at the same time.
     public synchronized void addMessage(Message message) {
-        System.out.println(message.toString());
         buffer.add(message);
         if (buffer.size() >= BATCH_SIZE) {
             flushBuffer();
