@@ -13,6 +13,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
 import com.connect.model.User;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -40,6 +41,7 @@ public class UserRepository {
         return Optional.ofNullable(mongoTemplate.findOne(query, User.class));
     }
 
+    @Async("asyncTaskExecutor")
     public Optional<User> updateUserStatus(String username, UserStatus status) {
         Query query = new Query();
         query.addCriteria(Criteria.where("username").is(username));

@@ -27,60 +27,58 @@ public class RoomService {
     public void init() {
         try {
             final String ROOM_NAME = "general";
-            Optional<Room> room = roomRepository.findRoomByName(ROOM_NAME);
-            if (room.isEmpty()) {
-                // Have to create the first room.
-                Room generalRoom = new Room(
-                        ROOM_NAME,
-                        "A public space for all users to chat, ask questions, and share updates.",
-                        LocalDateTime.now()
-                );
-                Optional<Room> createdRoom = roomRepository.addRoom(generalRoom);
-                if (createdRoom.isEmpty()) {
-                    log.error("Failed to create the general room");
-                }
-            }
+            roomRepository.findRoomByName(ROOM_NAME)
+                    .or(() -> {
+                        // If not found, create and try to insert a new room.
+                        Room generalRoom = Room.builder()
+                                .roomName(ROOM_NAME)
+                                .roomDescription("A public space for all users to chat, ask questions, and share updates.")
+                                .timeStamp(LocalDateTime.now())
+                                .build();
+                        return roomRepository.addRoom(generalRoom)
+                                .or(() -> {
+                                    log.error("Failed to create the general room");
+                                    return Optional.empty();
+                                });
+                    });
         } catch (Exception e) {
             log.error("Exception during roomService initialization {}", e.getMessage());
         }
     }
 
     public void addUserToRoom(User user, String roomId) {
-        Optional<Room> room = roomRepository.findRoomByID(roomId);
-        if (room.isEmpty()) {
-            log.error("No room exists failed to add user to the room");
-            return;
-        }
-
-    }
-    
-    public boolean isRoomExists(String roomId) {
-        return roomRepository.findRoomByID(roomId).isPresent();
+        roomRepository.findRoomByID(roomId)
+                .ifPresentOrElse(
+                        room -> {
+                            // May do it later.
+                        },
+                        () -> log.error("Failed to find the room")
+                );
     }
 
     // Method for adding a new Room
     public Room addNewRoom(Room room, String username) {
-        Optional<User> fetchedUser = userRepository.findByUsername(username);
-        if (fetchedUser.isEmpty()) {
-            log.error("No user found in the DB, failed to create new room");
-            return null;
-        }
-        room.setAdmin(fetchedUser.get());
-        Optional<Room> createdRoom = roomRepository.addRoom(room);
-        if (createdRoom.isEmpty()) {
-            log.error("Failed to create the room");
-            return null;
-        }
 
-        return createdRoom.get();
+        return userRepository.findByUsername(username)
+                .map(user -> {
+                    room.setAdmin(user);
+                    return roomRepository.addRoom(room)
+                            .orElseGet(() -> {
+                                log.error("Failed to create the room");
+                                return null;
+                            });
+                })
+                .orElseGet(() -> {
+                    log.error("No user found in database, failed to create the room");
+                    return null;
+                });
     }
 
     public List<Room> getRooms() {
-        Optional<List<Room>> rooms = roomRepository.getRooms();
-        if (rooms.isEmpty() || rooms.get().isEmpty()) {
-            log.info("No rooms found");
-            return null;
-        }
-        return rooms.get();
+        return roomRepository.getRooms()
+                .orElseGet(() -> {
+                    log.info("No rooms found");
+                    return null;
+                });
     }
 }

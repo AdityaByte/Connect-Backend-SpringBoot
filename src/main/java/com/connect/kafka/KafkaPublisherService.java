@@ -17,7 +17,7 @@ public class KafkaPublisherService {
     private KafkaTemplate<String, Object> kafkaTemplate;
 
     public void sendEvent(Message message) {
-        System.out.println(message.toString());
+        log.info("Message received: {}", message.toString());
         CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send("chat", message);
         future.whenComplete((result, exception) -> {
             if (exception == null) {
