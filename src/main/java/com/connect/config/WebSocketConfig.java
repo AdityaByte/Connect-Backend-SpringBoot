@@ -2,6 +2,7 @@ package com.connect.config;
 
 import com.connect.service.JwtTokenService;
 import com.connect.security.StompPrincipal;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,7 @@ import java.security.Principal;
 
 @Configuration
 @EnableWebSocketMessageBroker
+@Slf4j
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Value("${frontend.origin}")
@@ -50,36 +52,32 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             @Override
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-                System.out.println("STOMP Command: " + accessor.getCommand()); // Log the command
+                log.info("STOMP Command: {}", accessor.getCommand()); // Log the command
 
                 if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    System.out.println("Processing CONNECT command...");
+                    log.info("Processing CONNECT command...");
                     String authHeader = accessor.getFirstNativeHeader("Authorization");
-                    System.out.println("Authorization Header: " + authHeader); // Log the header
-
                     if (authHeader != null && authHeader.startsWith("Bearer ")) {
                         String token = authHeader.substring(7);
-                        System.out.println("Extracted Token: " + token); // Log the token
-
                         String username = service.extractUsername(token);
-                        System.out.println("Extracted Username from token: " + username); // Log extracted username
+                        log.info("Extracted Username from token: {}", username); // Log extracted username
 
                         if (username != null) {
                             Principal userPrincipal = new StompPrincipal(username);
                             accessor.setUser(userPrincipal);
-                            System.out.println("Principal set for user: " + username);
+                            log.info("Principal set for user: {}", username);
                         } else {
-                            System.out.println("Username could not be extracted from token. Principal NOT SET.");
+                            log.error("Username could not be extracted from token. Principal NOT SET.");
                         }
                     } else {
-                        System.out.println("Authorization header is missing or does not start with 'Bearer '. Principal NOT SET.");
+                        log.error("Authorization header is missing or does not start with 'Bearer '. Principal NOT SET.");
                     }
                 } else {
                     // For other commands (like SEND), check if principal is already present
                     if (accessor.getUser() != null) {
-                        System.out.println("Principal already present for command " + accessor.getCommand() + ": " + accessor.getUser().getName());
+                        log.info("Principal already present for command {} : {}", accessor.getCommand(), accessor.getUser().getName());
                     } else {
-                        System.out.println("No principal found for command: " + accessor.getCommand());
+                        log.error("No principal found for command: {}", accessor.getCommand());
                     }
                 }
                 return message;

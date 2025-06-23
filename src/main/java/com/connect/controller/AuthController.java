@@ -30,7 +30,7 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<Map<String, String>> signupHandler(@RequestBody User user) {
         log.info("Signup request by {}", user.toString());
-        authService.sendOTP(user);
+        authService.signupHandler(user);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(Map.of("response", "OTP sent to your email"));
@@ -58,7 +58,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> loginHandler(@RequestBody LoginUserDTO loginUser) throws Exception {
         log.info("Login Request by {}", loginUser.toString());
-        var response = authService.handleLogin(loginUser);
+        var response = authService.loginHandler(loginUser);
         return ResponseEntity.ok(response);
     }
 

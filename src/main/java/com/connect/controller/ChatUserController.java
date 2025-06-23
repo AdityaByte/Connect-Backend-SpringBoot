@@ -53,26 +53,26 @@ public class ChatUserController {
     public void handleHistory(SimpMessageHeaderAccessor headerAccessor) {
         String roomId = headerAccessor.getFirstNativeHeader("roomId");
         log.info("Handling the History of chats for the Room: {}", roomId);
-        Optional<List<Message>> messages = chatUserService.chatHistoryHandler(roomId);
-        messages.ifPresent(msgs -> {
-            System.out.println(messages.get().size());
-            List<MessageDTO> dtoList = msgs.stream()
-                    .map(MessageDTO::new)
-                    .collect(Collectors.toList());
 
-            messagingTemplate.convertAndSend("/topic/history/"+roomId, dtoList);
-        });
+        chatUserService.chatHistoryHandler(roomId)
+                .ifPresent(msgs -> {
+                    log.info("Message Size: {}", msgs.size());
+                    List<MessageDTO> dtoList = msgs.stream()
+                            .map(MessageDTO::new)
+                            .toList();
+                    messagingTemplate.convertAndSend("/topic/history/"+roomId, dtoList);
+                });
     }
 
     @MessageMapping("/users")
     public void fetchUsers() {
-        Optional<List<User>> users = chatUserService.fetchUser();
-        users.ifPresent(users1 -> {
-            List<UserDTO> modifiedUsers = users1
-                    .stream()
-                    .map(UserDTO::new)
-                    .collect(Collectors.toList());
-            messagingTemplate.convertAndSend("/topic/users", modifiedUsers);
-        });
+        chatUserService.fetchUser()
+                .ifPresent(users1 -> {
+                    List<UserDTO> modifiedUsers = users1
+                            .stream()
+                            .map(UserDTO::new)
+                            .collect(Collectors.toList());
+                    messagingTemplate.convertAndSend("/topic/users", modifiedUsers);
+                });
     }
 }

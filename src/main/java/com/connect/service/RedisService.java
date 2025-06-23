@@ -2,6 +2,7 @@ package com.connect.service;
 
 import com.connect.dto.OtpDTO;
 import com.connect.model.User;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 // Redis Service for Redis Operation.
 
 @Service
+@Slf4j
 public class RedisService {
 
     @Autowired
@@ -27,7 +29,7 @@ public class RedisService {
 
     // Method for explicitly removing the user
     public boolean removeUser(String key) {
-        return redisTemplate.delete("user:"+key);
+        return Boolean.TRUE.equals(redisTemplate.delete("user:" + key));
     }
 
     public void cacheOTPWithTTL(OtpDTO otpDTO) {
@@ -39,6 +41,6 @@ public class RedisService {
     }
 
     public boolean removeOTP(String key) {
-        return redisTemplate.delete("otp:"+key);
+        return Boolean.TRUE.equals(redisTemplate.delete("otp:"+key));
     }
 }

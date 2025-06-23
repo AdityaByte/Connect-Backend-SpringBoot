@@ -9,6 +9,7 @@ import com.connect.service.JwtTokenService;
 import com.connect.service.RoomService;
 import com.connect.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,22 +21,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
+@AllArgsConstructor
 public class ChatRoomController {
 
-    @Autowired
     private ChatUserService chatUserService;
 
-    @Autowired
     private RoomService roomService;
 
-    @Autowired
     private JwtTokenService jwtTokenService;
 
-    @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
     // Route for handling the joining message.
@@ -54,28 +53,18 @@ public class ChatRoomController {
     // Person who is creating the room must give the necessary information as in body.
     @PostMapping("/room/create")
     public ResponseEntity<Map<String, String>> createRoom(@RequestBody Room room, HttpServletRequest request) {
+
         log.info("New Room request");
         String rawToken = request.getHeader("Authorization");
-        // Checking the token is valid or not.
-        // This service extracts the username till then the token is valid otherwise it will not.
-        String token = rawToken.substring(7);
-        String username = jwtTokenService.extractUsername(token);
 
-        if (username.isEmpty()) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("response", "Invalid Token"));
-        }
-        // Here we need to send the data to the service class.
-        var createdRoom = roomService.addNewRoom(room, username);
-        if (createdRoom == null) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("response", "Something went wrong at the server! Try again later."));
-        }
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(Map.of("response", createdRoom.getRoomId().toString()));
+        return Optional.ofNullable(jwtTokenService.extractUsername(rawToken.substring(7)))
+                .flatMap(username -> Optional.ofNullable(roomService.addNewRoom(room, username))
+                        .map(newRoom -> ResponseEntity.ok(Map.of("response", "Room created successfully.")))
+                )
+                .orElseGet(() -> {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(Map.of("response", "Invalid Token or Room Creation Failed"));
+                });
     }
 
     @GetMapping("/room/getall")

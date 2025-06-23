@@ -2,7 +2,7 @@ package com.connect.repository;
 
 import com.connect.model.Message;
 import com.connect.model.Room;
-import org.bson.types.ObjectId;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+@Slf4j
 public class RoomRepository {
 
     @Autowired
@@ -57,7 +58,7 @@ public class RoomRepository {
         Query query = new Query();
         query.addCriteria(Criteria.where("roomId").is(roomId));
         List<Message> messageList = mongoTemplate.find(query, Message.class);
-        System.out.println(messageList.size());
+        log.info("MessageList size: {}", messageList.size());
         return Optional.of(messageList);
     }
 

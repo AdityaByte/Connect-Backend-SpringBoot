@@ -15,21 +15,30 @@ public class OTPService {
 
     private static final SecureRandom random = new SecureRandom();
 
-    public String generateOTPForUser(String userEmail) {
+    public String generateOTPForUser(String email) {
+
+        // Generating OTP ( 4 characters )
         int otp = 1000 + random.nextInt(9000);
-        OtpDTO otpDTO = new OtpDTO();
-        otpDTO.setOtp(String.valueOf(otp));
-        otpDTO.setEmail(userEmail);
+
+        OtpDTO otpDTO = OtpDTO.builder()
+                .otp(String.valueOf(otp))
+                .email(email)
+                .build();
+
+        // Caching the OTP with default time-limit of 3 minutes.
         redisService.cacheOTPWithTTL(otpDTO);
+
         return String.valueOf(otp);
     }
 
-    public boolean verifyOTP(String userEmail, String otp) {
-        OtpDTO otpDTO = redisService.getOTP(userEmail);
+    public boolean verifyOTP(String email, String otp) {
+
+        OtpDTO otpDTO = redisService.getOTP(email);
+
         if (otpDTO == null) {
             log.error("OTP is expired");
             return false;
-        } else if (otpDTO.getEmail() != null && !otpDTO.getEmail().equals(userEmail)) {
+        } else if (otpDTO.getEmail() != null && !otpDTO.getEmail().equals(email)) {
             log.error("Target Email is different");
             return false;
         } else if (otpDTO.getOtp() != null && !otpDTO.getOtp().equals(otp)) {
