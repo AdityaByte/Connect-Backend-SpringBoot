@@ -2,6 +2,7 @@ package com.connect.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import com.connect.enums.UserStatus;
 import lombok.extern.slf4j.Slf4j;
@@ -42,12 +43,18 @@ public class UserRepository {
     }
 
     @Async("asyncTaskExecutor")
-    public Optional<User> updateUserStatus(String username, UserStatus status) {
+    public CompletableFuture<Optional<User>> updateUserStatus(String username, UserStatus status) {
         Query query = new Query();
         query.addCriteria(Criteria.where("username").is(username));
         Update update = new Update();
         update.set("status", status);
-        return Optional.ofNullable(mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), User.class));
+        return CompletableFuture.completedFuture(Optional.ofNullable(
+                mongoTemplate.findAndModify(
+                        query,
+                        update,
+                        FindAndModifyOptions.options().returnNew(true),
+                        User.class)
+        ));
     }
 
     public Optional<List<User>> findAllUser() {

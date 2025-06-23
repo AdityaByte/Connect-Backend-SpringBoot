@@ -40,21 +40,24 @@ public class ChatUserService {
     private Map<String, User> users = new ConcurrentHashMap<>();
 
     public void greetingHandler(String token) {
-        // Extracting the username from the token.
+        try {
+            // Extracting the username from the token.
+            String username = Optional.ofNullable(jwtTokenService.extractUsername(token))
+                    .orElseGet(() -> {
+                        log.error("Invalid Token");
+                        return null;
+                    });
 
-       String username = Optional.ofNullable(jwtTokenService.extractUsername(token))
-               .orElseGet(() -> {
-                   log.error("Invalid Token");
-                   return null;
-               });
+            if (username == null || username.isEmpty()) {
+                log.error("Failed to extract username from token");
+                return;
+            }
 
-       if (username == null || username.isEmpty()) {
-            log.error("Failed to extract username from token");
-            return;
-       }
-
-       userRepository.updateUserStatus(username, UserStatus.ACTIVE)
-               .ifPresent(user -> users.put(user.getUsername(), user));
+            userRepository.updateUserStatus(username, UserStatus.ACTIVE).get()
+                    .ifPresent(user -> users.put(user.getUsername(), user));
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     public void joiningRequestHandler(String username, String roomId) {

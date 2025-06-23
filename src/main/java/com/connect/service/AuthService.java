@@ -159,8 +159,12 @@ public class AuthService {
 
     @CacheEvict(value = "userCache", allEntries = true)
     public User handleLogout(String username) {
-        return repository.updateUserStatus(username, UserStatus.ACTIVE)
-                .orElse(null);
+        try {
+            return repository.updateUserStatus(username, UserStatus.ACTIVE).get()
+                    .orElse(null);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update the user: " + e.getMessage());
+        }
     }
 
 }
