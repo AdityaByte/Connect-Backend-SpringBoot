@@ -1,13 +1,11 @@
 package com.connect.dto;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Data
 @Getter
 @Setter
+@Builder
 @ToString
 public class LoginUserDTO {
     private String email;
