@@ -2,9 +2,8 @@ package com.connect.controller;
 
 import com.connect.dto.MessageDTO;
 import com.connect.dto.UserDTO;
-import com.connect.model.Message;
-import com.connect.model.User;
 import com.connect.service.ChatUserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -14,7 +13,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 // ChatUserController
@@ -23,13 +21,11 @@ import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
+@RequiredArgsConstructor
 public class ChatUserController {
 
-    @Autowired
-    private ChatUserService chatUserService;
-
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private final ChatUserService chatUserService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/greet")
     public void handleGreeting(SimpMessageHeaderAccessor headerAccessor) {

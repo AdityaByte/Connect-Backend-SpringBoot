@@ -2,6 +2,7 @@ package com.connect.service;
 
 import com.connect.dto.OtpDTO;
 import com.connect.model.User;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,10 +14,10 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class RedisService {
 
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     public void cacheUserWithTTL(User user) {
         redisTemplate.opsForValue().set("user:"+user.getEmail(), user);

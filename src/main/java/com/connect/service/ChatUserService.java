@@ -5,11 +5,10 @@ import com.connect.dto.MessageDTO;
 import com.connect.enums.UserStatus;
 import com.connect.kafka.KafkaPublisherService;
 import com.connect.model.Message;
-import com.connect.model.Room;
 import com.connect.model.User;
 import com.connect.repository.RoomRepository;
 import com.connect.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.cache.annotation.Cacheable;
@@ -22,20 +21,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ChatUserService {
 
-    private RoomService roomService;
-
-    private RoomRepository roomRepository;
-
-    private JwtTokenService jwtTokenService;
-
-    private UserRepository userRepository;
-
-    private KafkaPublisherService kafkaPublisherService;
-
-    private MessageBuffer messageBuffer;
+    private final RoomService roomService;
+    private final RoomRepository roomRepository;
+    private final JwtTokenService jwtTokenService;
+    private final UserRepository userRepository;
+    private final KafkaPublisherService kafkaPublisherService;
+    private final MessageBuffer messageBuffer;
 
     private Map<String, User> users = new ConcurrentHashMap<>();
 

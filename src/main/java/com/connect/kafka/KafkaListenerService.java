@@ -2,17 +2,17 @@ package com.connect.kafka;
 
 import com.connect.buffer.MessageBuffer;
 import com.connect.model.Message;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class KafkaListenerService {
 
-    @Autowired
-    private MessageBuffer messageBuffer;
+    private final MessageBuffer messageBuffer;
 
     @KafkaListener(topics = "chat", groupId = "chat-group")
     public void consumeEvent(Message message) {

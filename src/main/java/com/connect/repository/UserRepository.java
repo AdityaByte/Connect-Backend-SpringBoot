@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import com.connect.enums.UserStatus;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -19,10 +20,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @Slf4j
+@RequiredArgsConstructor
 public class UserRepository {
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
+    private final MongoTemplate mongoTemplate;
 
     // Repository method for making db queries and interacting with the database.
 

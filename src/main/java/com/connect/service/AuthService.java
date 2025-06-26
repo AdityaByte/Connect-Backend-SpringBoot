@@ -9,7 +9,7 @@ import com.connect.exception.TimeoutException;
 import com.connect.security.CustomUserDetails;
 import com.connect.utils.EmailUtil;
 import com.connect.utils.JwtUtil;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,23 +29,17 @@ import com.connect.exception.UserCreationException;;
 // Handles the main business logic of Authentication
 
 @Service
-@AllArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class AuthService {
 
-    private UserRepository repository;
-
-    private EmailService emailService;
-
-    private RedisService redisService;
-
-    private OTPService otpService;
-
-    private AuthenticationManager authenticationManager;
-
-    private JwtUtil jwtUtil;
-
-    private EmailUtil emailUtil;
+    private final UserRepository repository;
+    private final EmailService emailService;
+    private final RedisService redisService;
+    private final OTPService otpService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+    private final EmailUtil emailUtil;
 
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 

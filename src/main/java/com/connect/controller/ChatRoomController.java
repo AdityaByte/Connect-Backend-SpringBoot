@@ -7,11 +7,9 @@ import com.connect.model.Room;
 import com.connect.service.ChatUserService;
 import com.connect.service.JwtTokenService;
 import com.connect.service.RoomService;
-import com.connect.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -26,16 +24,13 @@ import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ChatRoomController {
 
-    private ChatUserService chatUserService;
-
-    private RoomService roomService;
-
-    private JwtTokenService jwtTokenService;
-
-    private SimpMessagingTemplate messagingTemplate;
+    private final ChatUserService chatUserService;
+    private final RoomService roomService;
+    private final JwtTokenService jwtTokenService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     // Route for handling the joining message.
     @MessageMapping("/chat.join")

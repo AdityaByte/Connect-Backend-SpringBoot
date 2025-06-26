@@ -15,9 +15,9 @@ import java.time.LocalDateTime;
 @ToString
 @Document(collection = "messages")
 public class Message {
+
     @Id
     private ObjectId id;
-
     private String roomId;
     private String sender;
     private String message;

@@ -1,7 +1,6 @@
 package com.connect.security;
 
 import com.connect.model.User;
-import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 

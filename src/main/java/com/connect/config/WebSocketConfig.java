@@ -2,6 +2,7 @@ package com.connect.config;
 
 import com.connect.service.JwtTokenService;
 import com.connect.security.StompPrincipal;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,13 +24,13 @@ import java.security.Principal;
 @Configuration
 @EnableWebSocketMessageBroker
 @Slf4j
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Value("${frontend.origin}")
     private String FRONTEND_URL;
 
-    @Autowired
-    private JwtTokenService service;
+    private final JwtTokenService service;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {

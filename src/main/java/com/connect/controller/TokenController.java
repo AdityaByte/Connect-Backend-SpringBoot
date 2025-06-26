@@ -1,14 +1,12 @@
 package com.connect.controller;
 
 import com.connect.service.JwtTokenService;
-import com.connect.utils.JwtUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.Optional;
 
 // Controller for handling the Verify Token Request
@@ -16,10 +14,10 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api")
 @Slf4j
+@RequiredArgsConstructor
 public class TokenController {
 
-    @Autowired
-    private JwtTokenService tokenService;
+    private final JwtTokenService tokenService;
 
     @GetMapping("/verify-token")
     public ResponseEntity<?> verifyToken(@RequestHeader("Authorization") String authHeader) {

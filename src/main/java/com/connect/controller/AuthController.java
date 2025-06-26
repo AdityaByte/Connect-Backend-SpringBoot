@@ -4,8 +4,8 @@ import java.util.Map;
 
 import com.connect.dto.LoginUserDTO;
 import com.connect.dto.OtpDTO;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,10 +21,10 @@ import com.connect.service.AuthService;
 @RestController
 @RequestMapping("/auth")
 @Slf4j
+@RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
     // Handler method for handling the signup functionality.
     @PostMapping("/signup")

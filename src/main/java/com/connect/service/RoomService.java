@@ -5,6 +5,7 @@ import com.connect.model.User;
 import com.connect.repository.RoomRepository;
 import com.connect.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,13 +16,11 @@ import java.util.Optional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class RoomService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RoomRepository roomRepository;
+    private final UserRepository userRepository;
+    private final RoomRepository roomRepository;
 
     @PostConstruct
     public void init() {
