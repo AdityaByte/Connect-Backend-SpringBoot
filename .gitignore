@@ -36,3 +36,4 @@ build/
 .mvn/
 index.html
 *.yml
+log/
